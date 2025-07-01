@@ -26,7 +26,7 @@ const tl = gsap.timeline({
     end: `+=${totalSections * window.innerHeight}`, // space for each step and pause
     pin: true,
     scrub: true,  // 🟢 Makes animation depend on scroll
- 
+
     snap: {
       snapTo: 1 / (totalSections * 2 - 1), // snap to each step (rotate + pause)
       duration: 0.4,
@@ -34,27 +34,27 @@ const tl = gsap.timeline({
     },
     anticipatePin: 1,
     pinSpacing: false,
-   onUpdate: self => {
-    if (suppressAutoActivate) return; // 🔒 Skip activation during dropdown navigation
+    onUpdate: self => {
+      if (suppressAutoActivate) return; // 🔒 Skip activation during dropdown navigation
 
-    const currentRotation = gsap.getProperty(holder, "rotation");
-    const snapped = gsap.utils.snap(180, currentRotation);
-    const sectionIndex = Math.round(snapped / 180);
-    
-    if (sectionIndex % 2 !== 0) {
-      blackBG.style.height = "93vh";
-    }
-    else {
-      blackBG.style.height = "98vh";
+      const currentRotation = gsap.getProperty(holder, "rotation");
+      const snapped = gsap.utils.snap(180, currentRotation);
+      const sectionIndex = Math.round(snapped / 180);
+
+      if (sectionIndex % 2 !== 0) {
+        blackBG.style.height = "93vh";
+      }
+      else {
+        blackBG.style.height = "98vh";
+      }
+
+      if (sectionIndex !== lastSectionIndex && sectionIndex >= 0 && sectionIndex < totalSections) {
+        console.log("Last section index: ", lastSectionIndex);
+        lastSectionIndex = sectionIndex;
+        activateSection(sectionIndex);
+      }
     }
 
-    if (sectionIndex !== lastSectionIndex && sectionIndex >= 0 && sectionIndex < totalSections) {
-      console.log("Last section index: ", lastSectionIndex);
-      lastSectionIndex = sectionIndex;
-      activateSection(sectionIndex);
-    }
-  }
-    
   }
 });
 
@@ -66,7 +66,7 @@ for (let i = 0; i < totalSections; i++) {
     rotation: targetRotation,
     duration: 1,
     // onUpdate: () => {activateSection(i)},
-    
+
   });
 
   // Step 2: Pause block (just for scroll space)
@@ -79,6 +79,11 @@ function activateSection(index) {
     const isActive = idx === index;
 
     if (isActive) {
+      if (index % 2 !== 0) {
+        blackBG.style.height = "93vh";
+      } else {
+        blackBG.style.height = "98vh";
+      }
       sec.classList.add('active');
       gsap.to(sec, { autoAlpha: 1, duration: 0.3 });
 
