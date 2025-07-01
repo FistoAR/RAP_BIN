@@ -6,12 +6,17 @@ const sections = document.querySelectorAll('.section');
 const gridImgBG = document.getElementById('secBgImage');
 const navDropdown = document.getElementById('navDropdown');
 const totalSections = sections.length;
+const blackBG = document.querySelector(".black");
 
 // Hide all initially
 gsap.set(sections, { autoAlpha: 0 });
 gsap.set(gridImgBG, { autoAlpha: 0 });
 gsap.set(sections[0], { autoAlpha: 1 });
 sections[0].classList.add('active');
+
+let suppressAutoActivate = false;
+let lastSectionIndex = -1;
+
 
 // Build timeline with scrub & snap
 const tl = gsap.timeline({
@@ -29,6 +34,26 @@ const tl = gsap.timeline({
     },
     anticipatePin: 1,
     pinSpacing: false,
+   onUpdate: self => {
+    if (suppressAutoActivate) return; // 🔒 Skip activation during dropdown navigation
+
+    const currentRotation = gsap.getProperty(holder, "rotation");
+    const snapped = gsap.utils.snap(180, currentRotation);
+    const sectionIndex = Math.round(snapped / 180);
+    
+    if (sectionIndex % 2 !== 0) {
+      blackBG.style.height = "93vh";
+    }
+    else {
+      blackBG.style.height = "98vh";
+    }
+
+    if (sectionIndex !== lastSectionIndex && sectionIndex >= 0 && sectionIndex < totalSections) {
+      console.log("Last section index: ", lastSectionIndex);
+      lastSectionIndex = sectionIndex;
+      activateSection(sectionIndex);
+    }
+  }
     
   }
 });
@@ -40,7 +65,7 @@ for (let i = 0; i < totalSections; i++) {
   tl.to(holder, {
     rotation: targetRotation,
     duration: 1,
-    onUpdate: () => {activateSection(i)},
+    // onUpdate: () => {activateSection(i)},
     
   });
 
@@ -95,33 +120,51 @@ function activateSection(index) {
 }
 
 
-
 navDropdown.addEventListener('change', function () {
   const selectedOption = navDropdown.options[navDropdown.selectedIndex];
   const dataIndex = parseInt(selectedOption.dataset.index); // 1-based
-  const sectionIndex = dataIndex - 1; // 0-based index of section
+  const sectionIndex = dataIndex - 1; // 0-based index
 
   const trigger = ScrollTrigger.getAll()[0];
   const timelineProgress = (sectionIndex * 2) / (totalSections * 2 - 1);
   const targetScrollY = trigger.start + timelineProgress * (trigger.end - trigger.start);
 
-  // Calculate the exact rotation the holder should be at
   const exactRotation = sectionIndex * 180;
 
+  suppressAutoActivate = true; // 🔒 Temporarily disable auto section switching
+
+  // 🔻 Step 1: Fade out all sections immediately
+  sections.forEach((sec) => {
+    gsap.to(sec, { autoAlpha: 0, duration: 0.3 });
+    sec.classList.remove('active');
+  });
+
+  // 🔁 Step 2: Scroll and rotate
   gsap.to(window, {
     scrollTo: targetScrollY,
     duration: 1,
     ease: "power2.inOut",
     onComplete: () => {
-    // Smoothly animate to the exact rotation
-    gsap.to(holder, {
-      rotation: exactRotation,
-      duration: 0.4,
-      ease: "power2.out"
-    });
-  }
+      gsap.to(holder, {
+        rotation: exactRotation,
+        duration: 0.1,
+        ease: "power2.out",
+        onComplete: () => {
+          // ✅ Step 3: Fade in the correct section
+          activateSection(sectionIndex);
+
+          // Ensure rotation is snapped exactly
+          gsap.set(holder, { rotation: exactRotation });
+          ScrollTrigger.update();
+
+          suppressAutoActivate = false; // ✅ Reactivate auto
+        }
+      });
+    }
+  });
 });
-});
+
+
 
 function animateChildElements() {
   console.log("Code to animate child elements");
