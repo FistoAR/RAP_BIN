@@ -94,7 +94,7 @@ body {
 }
 
 .black {
-  height: 95vh;
+  height: 98vh;
   background-color: #252627;
   clip-path: polygon(0 0, 100% 0, 100% 77%, 50% 100%, 0 77.5%);
 }
@@ -116,8 +116,8 @@ body {
 
 .round {
   position: absolute;
-  width: 13.65vw;
-  height: 28vh;
+  width: 10vw;
+  height: 20vh;
   border-radius: 50%;
   background-color: #252627;
   left: 50%;
@@ -180,8 +180,8 @@ body {
 
 
 .round-inner {
-  height: 80%;
-  width: 80%;
+  height: 78%;
+  width: 78%;
   border-radius: 50%;
   background-color: transparent;
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.897);
@@ -189,6 +189,7 @@ body {
   justify-content: center;
   align-items: center;
   position: relative;
+  margin-left: .25vw;
 }
 
 .round-inner2 {
@@ -220,35 +221,35 @@ body {
   position: absolute;
   color: white;
   font-weight: bold;
-  font-size: 1.3vw;
+  font-size: 1.15vw;
 }
 
 .n-1 {
-  inset: 1.1vw 0vw 0vw 5.8vw;
+  inset: 0.6vw 0vw 0vw 4vw;
 }
 
 .n-2 {
-  inset: 3.4vw 0vw 0vw 6.75vw;
+  inset: 2.25vw 0vw 0vw 4.6vw;
 }
 
 .n-3 {
-  inset: 5.6vw 0vw 0vw 5.3vw;
+  inset: 3.75vw 0vw 0vw 3.6vw;
 }
 
 .n-4 {
-  inset: 5.85vw 0vw 0vw 2.8vw;
+  inset: 4.1vw 0vw 0vw 1.95vw;
 }
 
 .n-5 {
-  inset: 4.35vw 0vw 0vw 0.75vw;
+  inset: 2.92vw 0vw 0vw 0.5vw;
 }
 
 .n-6 {
-  inset: 1.9vw 0vw 0vw 0.85vw;
+  inset: 1.25vw 0vw 0vw 0.5vw;
 }
 
 .n-7 {
-  inset: 0.4vw 0vw 0vw 2.5vw;
+  inset: 0.15vw 0vw 0vw 1.75vw;
 }
 
 .round-inner-cover {
