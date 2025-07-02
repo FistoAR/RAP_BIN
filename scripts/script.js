@@ -26,37 +26,39 @@ const tl = gsap.timeline({
     end: `+=${totalSections * window.innerHeight}`, // space for each step and pause
     pin: true,
     scrub: true,  // 🟢 Makes animation depend on scroll
- 
-    snap: {
-      snapTo: 1 / (totalSections * 2 - 1), // snap to each step (rotate + pause)
-      duration: 0.4,
-      ease: "power1.inOut"
-    },
+
+    // snap: {
+    //   snapTo: 1 / (totalSections * 2 - 1), // snap to each step (rotate + pause)
+    //   duration: 0.4,
+    //   ease: "power1.inOut"
+    // },
     anticipatePin: 1,
     pinSpacing: false,
-   onUpdate: self => {
-    if (suppressAutoActivate) return; // 🔒 Skip activation during dropdown navigation
+    onUpdate: self => {
+      if (suppressAutoActivate) return; // 🔒 Skip activation during dropdown navigation
 
-    const currentRotation = gsap.getProperty(holder, "rotation");
-    const snapped = gsap.utils.snap(180, currentRotation);
-    const sectionIndex = Math.round(snapped / 180);
-    
-    if (sectionIndex % 2 !== 0) {
-      blackBG.style.height = "93vh";
-    }
-    else {
-      blackBG.style.height = "98vh";
+      const currentRotation = gsap.getProperty(holder, "rotation");
+      const snapped = gsap.utils.snap(180, currentRotation);
+      const sectionIndex = Math.round(snapped / 180);
+
+      if (sectionIndex % 2 !== 0) {
+        blackBG.style.height = "93vh";
+      }
+      else {
+        blackBG.style.height = "98vh";
+      }
+
+      if (sectionIndex !== lastSectionIndex && sectionIndex >= 0 && sectionIndex < totalSections) {
+        console.log("Last section index: ", lastSectionIndex);
+        lastSectionIndex = sectionIndex;
+        activateSection(sectionIndex);
+      }
     }
 
-    if (sectionIndex !== lastSectionIndex && sectionIndex >= 0 && sectionIndex < totalSections) {
-      console.log("Last section index: ", lastSectionIndex);
-      lastSectionIndex = sectionIndex;
-      activateSection(sectionIndex);
-    }
-  }
-    
   }
 });
+
+
 
 for (let i = 0; i < totalSections; i++) {
   const targetRotation = i * 180;
@@ -64,9 +66,9 @@ for (let i = 0; i < totalSections; i++) {
   // Step 1: Rotate & show section
   tl.to(holder, {
     rotation: targetRotation,
-    duration: 1,
+    duration: i === 0 ? 0.01 : 1, // very quick start
     // onUpdate: () => {activateSection(i)},
-    
+
   });
 
   // Step 2: Pause block (just for scroll space)
@@ -79,7 +81,7 @@ function activateSection(index) {
     const isActive = idx === index;
 
     if (isActive) {
-      
+
       sec.classList.add('active');
       gsap.to(sec, { autoAlpha: 1, duration: 0.3 });
 
@@ -124,10 +126,12 @@ function activateSection(index) {
 navDropdown.addEventListener('change', function () {
   const selectedOption = navDropdown.options[navDropdown.selectedIndex];
   const dataIndex = parseInt(selectedOption.dataset.index); // 1-based
-  const sectionIndex = dataIndex - 1; // 0-based index
+  const sectionIndex = dataIndex - 1; // 0-based
 
   const trigger = ScrollTrigger.getAll()[0];
-  const timelineProgress = (sectionIndex * 2) / (totalSections * 2 - 1);
+  const tlDuration = tl.duration(); // 🔍 Get actual total timeline duration
+  const sectionTime = sectionIndex * 2; // Each section has 2 steps: rotate + pause
+  const timelineProgress = sectionTime / tlDuration;
   const targetScrollY = trigger.start + timelineProgress * (trigger.end - trigger.start);
 
   const exactRotation = sectionIndex * 180;
@@ -135,27 +139,31 @@ navDropdown.addEventListener('change', function () {
 
   suppressAutoActivate = true;
 
-  // Step 1: Fade out all sections
+  // Step 1: Fade out all sections immediately
   sections.forEach((sec) => {
     gsap.to(sec, { autoAlpha: 0, duration: 0.3 });
     sec.classList.remove('active');
   });
 
-  // Step 2: Animate scroll, rotation, and blackBG height together
-  const tl = gsap.timeline({
+  // Step 2: Animate scroll and background height
+  const navTl = gsap.timeline({
     defaults: { ease: "power2.inOut" },
     onComplete: () => {
-      activateSection(sectionIndex);
-      gsap.set(holder, { rotation: exactRotation });
-      ScrollTrigger.update();
-      suppressAutoActivate = false;
+      // Force-apply correct rotation and re-trigger section logic
+      requestAnimationFrame(() => {
+        gsap.set(holder, { rotation: exactRotation });
+        ScrollTrigger.update();
+        activateSection(sectionIndex);
+        suppressAutoActivate = false;
+      });
     }
   });
 
-  tl.to(window, { scrollTo: targetScrollY, duration: 1 }, 0); // Start at 0
-  tl.to(holder, { rotation: exactRotation, duration: 1 }, 0); // Parallel
-  tl.to(blackBG, { height: targetHeight, duration: 1 }, 0);    // Parallel
+  navTl.to(window, { scrollTo: targetScrollY, duration: 1 }, 0);
+  navTl.to(blackBG, { height: targetHeight, duration: 1 }, 0);
+  navTl.to(holder, { rotation: exactRotation, duration: 1, overwrite: 'auto' }, 0);
 });
+
 
 
 
